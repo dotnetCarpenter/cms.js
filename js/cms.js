@@ -20,9 +20,9 @@ var CMS = {
       { name: 'About' }
     ],
     pagination: 3,
-    postsFolder: 'posts',
+    postsFolder: 'posts/',
     postSnippetLength: 120,
-    pagesFolder: 'pages',
+    pagesFolder: 'pages/',
     fadeSpeed: 300,
     mainContainer: $(document.getElementsByClassName('cms_main')),
     footerContainer: $(document.getElementsByClassName('cms_footer')),
@@ -54,6 +54,31 @@ var CMS = {
   posts: [],
   pages: [],
   loaded: {},
+  
+  models: {
+    file: Object.defineProperties({ name: '', link: '' }, {
+      // name: { value: '', writable: true },
+      // link: { value: '', writable: true },
+      _date: { enumarable: false, writable: true },
+      date: {
+        set: function(d) {
+          var dateParser = /\d{4}(?:-\d{2})(?:-d{2})?/; // can parse both 2016, 2016-01 and 2016-01-01
+
+          if(d instanceof Date) { 
+            d = d;
+          } else if(d.constructor == String) { // OR (typeof d === 'string' || d instanceof String)
+            d = new Date(dateParser.test(d) && dateParser.exec(d)[0]);          
+          } else {
+            throw new TypeError('Failed setting date property on file object. Value: ' + d);
+          }
+            
+          this._date = d;
+        },
+        get: function() { return this._date; },
+        enumerable: true
+      }
+    })
+  },
 
   extend: function (target, opts, callback) {
     var next;
@@ -247,25 +272,20 @@ var CMS = {
     }
   },
 
-  getContent: function (type, file, counter, numFiles) {
+  getContent: function (type, file, counter, numFiles) { console.log('getContent')
 
-    var urlFolder = '',
-        url;
+    var url = '';
 
-    switch(type) {
-      case 'post':
-        urlFolder = CMS.settings.postsFolder;
-        break;
-      case 'page':
-        urlFolder = CMS.settings.pagesFolder;
-        break;
-    }
+    if(!CMS.models.file.isPrototypeOf(file))
+      throw new TypeError('file argument is not a of type CMS.models.file');
 
     if (CMS.settings.mode == 'Github') {
       url = file.link;
     } else {
       url = file.name;
     }
+    console.debug(url)
+    console.log(JSON.stringify(file))
 
     $.ajax({
       type: 'GET',
@@ -281,7 +301,7 @@ var CMS = {
     });
   },
 
-  getFiles: function (type) {
+  getFiles: function (type) { console.log('getFiles')
 
     var folder = '',
       url = '';
@@ -294,6 +314,8 @@ var CMS = {
         folder = CMS.settings.pagesFolder;
         break;
     }
+    
+    console.log(folder)
 
     if (CMS.settings.mode == 'Github') {
       var gus = CMS.settings.githubUserSettings,
@@ -308,8 +330,7 @@ var CMS = {
       success: function (data) {
 
         var files = [],
-          linkFiles,
-          dateParser = /\d{4}-\d{2}(?:-d{2})?/; // can parse both 2016-01 and 2016-01-01
+          linkFiles;
 
         if (CMS.settings.mode == 'Github') {
           linkFiles = data;
@@ -320,7 +341,8 @@ var CMS = {
         $(linkFiles).each(function (k, f) {
 
           var filename,
-            downloadLink;
+            downloadLink,
+            file;
 
           if (CMS.settings.mode == 'Github') {
             filename = f.name;
@@ -330,8 +352,8 @@ var CMS = {
           }
 
           if (filename.endsWith('.md')) {
-            var file = {};
-            file.date = new Date(dateParser.test(filename) && dateParser.exec(filename)[0]);
+            file = Object.create(CMS.models.file);
+            file.date = filename;
             file.name = filename;
             if (downloadLink) {
               file.link = downloadLink;
