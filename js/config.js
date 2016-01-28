@@ -55,7 +55,7 @@ $(function() {
     // to Github pages branch (gh-pages)
     githubUserSettings: {
       username: 'dotnetCarpenter',
-      repo: 'traits.js'
+      repo: 'cms.js'
     }
 
   });
