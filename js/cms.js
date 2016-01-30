@@ -55,17 +55,40 @@ var CMS = {
   pages: [],
   loaded: {},
   
-  models: {
+  util: {
+    normalizePath: function(/* arguments */) {
+      var seperator = /\//;
+      return Array.prototype.reduce.call(arguments, function(p1, p2) {
+        return seperator.test(p1) && seperator.test(p2) ? p1 + p2 :
+           p1 + '/' + p2;
+      });
+      
+      // Array.prototype.join.call(arguments, '/');
+      // var words = string.
+      // function words(string, accu) {
+      //   var word = /\w/,
+      //     x = string[0];
+      //   if(string.length === 0) return accu;
+      //   return words(string[0], accu)
+      // }
+    }
+  },
+  
+  model: {
     file: {
       name: '',
       link: '',
       date: undefined,
       get url() {
-        return CMS.settings.mode == 'Github' ? this.link : this.name;
-      }
+        return CMS.settings.mode == 'Github' ?
+          this.link :
+          CMS.util.normalizePath(this.path, this.name);
+      },
+      path: ''
     },
 
     folder: {
+      path: '',
       getUrl: function(type) {
         var folder,
           url;
@@ -82,9 +105,12 @@ var CMS = {
         if (CMS.settings.mode == 'Github') {
           var gus = CMS.settings.githubUserSettings,
             gs = CMS.settings.githubSettings;
-          url = gs.host + '/repos/' + gus.username + '/' + gus.repo + '/contents/' + folder + '?ref=' + gs.branch;
+          this.path = '/repos/' + gus.username + '/' + gus.repo + '/contents/' + folder
+          url = gs.host + this.path + '?ref=' + gs.branch;
         } else {
-          url = location.pathname + folder.replace(/^\//, '');
+          url = folder.replace(/^\//, '');
+          this.path = url;
+          // url = location.pathname + folder.replace(/^\//, '');
         }
 
         return url;
@@ -286,8 +312,8 @@ var CMS = {
 
   getContent: function (type, file, counter, numFiles) {
 
-    if(!CMS.models.file.isPrototypeOf(file))
-      throw new TypeError('file argument is not a of type CMS.models.file. ' + file);
+    if(!CMS.model.file.isPrototypeOf(file))
+      throw new TypeError('file argument is not a of type CMS.model.file. ' + file);
 
     var url = file.url;
 
@@ -307,7 +333,7 @@ var CMS = {
 
   getFiles: function (type) {
 
-    var folder = Object.create(CMS.models.folder),
+    var folder = Object.create(CMS.model.folder),
       url = folder.getUrl(type);
 
     $.ajax({
@@ -338,9 +364,10 @@ var CMS = {
           }
 
           if (filename.endsWith('.md')) {
-            file = Object.create(CMS.models.file);
+            file = Object.create(CMS.model.file);
             file.date = new Date(dateParser.test(filename) && dateParser.exec(filename)[0]);
             file.name = filename;
+            file.path = folder.path;
             if (downloadLink) {
               file.link = downloadLink;
             }
@@ -449,5 +476,5 @@ var CMS = {
       });
     }
   }
-
+  
 };
