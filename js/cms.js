@@ -78,11 +78,15 @@ var CMS = {
     file: {
       name: '',
       link: '',
+      folder: '',
       date: undefined,
       get url() {
         return CMS.settings.mode == 'Github' ?
           this.link :
-          CMS.util.normalizePath(this.path, this.name);
+          this.name.indexOf(this.folder) > -1 ?
+            this.name :
+            this.folder + '/' + this.name;
+          //CMS.util.normalizePath(this.path, this.name);
       },
       path: ''
     },
