@@ -14,7 +14,6 @@ phantom.onError = function(msg, trace) {
 page.open('http://localhost/index.html', function(status) {
   console.log("Status: " + status);
   if(status === "success") {
-    page.render('example.png');
     phantom.exit(0);
   }
   phantom.exit(1);
