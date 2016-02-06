@@ -5,6 +5,7 @@
   "keywords": "client-side, javascript, site-generator",
   "homepage": "https://github.com/cdmedia/cms.js",
   "scripts": {
+    "pretest": "npm run mode",
     "test": "phantomjs tests/catchErrors.js",
     "mode": "./bin/changeMode.js"
   },
@@ -18,9 +19,6 @@
     "url": "https://github.com/cdmedia/cms.js/issues"
   },
   "devDependencies": {
-    "grunt": "~0.4.4",
-    "grunt-contrib-copy": "latest",
-    "grunt-contrib-uglify": "latest",
-    "grunt-contrib-watch": "latest"
+    "ecstatic": "latest"
   }
 }

@@ -284,7 +284,7 @@ var CMS = {
 
     // Put everything back together if broken
     var contentData = data.join();
-    æøå!! contentObj.contentData = marked(contentData);
+    contentObj.contentData = marked(contentData);
 
     switch(file.type) {
       case 'post':
