@@ -59,9 +59,23 @@ var CMS = {
     file: {
       name: '',
       link: '',
+      type: '',
       date: undefined,
       get url() {
-        return CMS.settings.mode == 'Github' ? this.link : this.name;
+        var urlFolder = '';
+
+        switch(this.type) {
+         case 'post':
+           urlFolder = CMS.settings.postsFolder;
+           break;
+         case 'page':
+           urlFolder = CMS.settings.pagesFolder;
+           break;
+        }
+        
+        return CMS.settings.mode == 'Github' ?
+          this.link :
+          this.name.indexOf(urlFolder) > -1 ? this.name : urlFolder + '/' + this.name;
       }
     },
 
@@ -84,7 +98,7 @@ var CMS = {
             gs = CMS.settings.githubSettings;
           url = gs.host + '/repos/' + gus.username + '/' + gus.repo + '/contents/' + folder + '?ref=' + gs.branch;
         } else {
-          url = location.pathname + folder.replace(/^\//, '');
+          url = folder.replace(/^\//, '');
         }
 
         return url;
@@ -236,7 +250,10 @@ var CMS = {
     }
   },
 
-  parseContent: function (content, type, file, counter, numFiles) {
+  parseContent: function (content, file, counter, numFiles) {
+    
+    if(!CMS.models.file.isPrototypeOf(file))
+      throw new TypeError('file argument is not of type CMS.models.file. ' + file);
 
     var data = content.split(CMS.settings.parseSeperator),
       contentObj = {},
@@ -269,7 +286,7 @@ var CMS = {
     var contentData = data.join();
     contentObj.contentData = marked(contentData);
 
-    switch(type) {
+    switch(file.type) {
       case 'post':
         CMS.posts.push(contentObj);
         break;
@@ -280,42 +297,26 @@ var CMS = {
 
     // Execute after all content is loaded
     if (counter === numFiles) {
-      CMS.contentLoaded(type);
+      CMS.contentLoaded(file.type);
     }
   },
 
-  getContent: function (type, file, counter, numFiles) {
+  getContent: function (file, counter, numFiles) {
 
     if(!CMS.models.file.isPrototypeOf(file))
-      throw new TypeError('file argument is not a of type CMS.models.file. ' + file);
+      throw new TypeError('file argument is not of type CMS.models.file. ' + file);
 
-    var url = file.url,
-      urlFolder = '';
-
-    switch(type) {
-     case 'post':
-       urlFolder = CMS.settings.postsFolder;
-       break;
-     case 'page':
-       urlFolder = CMS.settings.pagesFolder;
-       break;
-    }
-
-    if (CMS.settings.mode == 'Github') {
-      url = file.link;
-    } else {
-      url = file.name.indexOf(urlFolder) > -1 ? file.name : urlFolder + '/' + file.name;
-    }
+    var url = file.url;
 
     $.ajax({
       type: 'GET',
       url: url,
       dataType: 'html',
       success: function (content) {
-        CMS.parseContent(content, type, file, counter, numFiles);
+        CMS.parseContent(content, file, counter, numFiles);
       },
       error: function () {
-        var errorMsg = 'Error loading ' + type + ' content';
+        var errorMsg = 'Error loading ' + file.type + ' content';
         CMS.renderError(errorMsg);
       }
     });
@@ -357,6 +358,7 @@ var CMS = {
             file = Object.create(CMS.models.file);
             file.date = new Date(dateParser.test(filename) && dateParser.exec(filename)[0]);
             file.name = filename;
+            file.type = type;
             if (downloadLink) {
               file.link = downloadLink;
             }
@@ -371,7 +373,7 @@ var CMS = {
         if (numFiles > 0) {
           for (var file of files) {
             counter++;
-            CMS.getContent(type, file, counter, numFiles);
+            CMS.getContent(file, counter, numFiles);
           }
         } else {
           var errorMsg = 'Error loading ' + type + 's in directory. Make sure ' +

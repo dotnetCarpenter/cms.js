@@ -35,6 +35,7 @@ More info on server setup is available on the [wiki](https://github.com/cdmedia/
 
 
 **Change Mode**
+
 Open `js/config.js` in your editor, find `mode:` and change it to *'Github'* or *'Server'*.
 Or use `npm run mode` to toggle between *'Github'* and *'Server'* mode.
 
