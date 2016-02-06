@@ -34,6 +34,10 @@ If using server mode, make sure the server's directory indexing feature is enabl
 More info on server setup is available on the [wiki](https://github.com/cdmedia/cms.js/wiki/Server-Support-&-Setup)
 
 
+**Change Mode**
+Open `js/config.js` in your editor, find `mode:` and change it to *'Github'* or *'Server'*.
+Or use `npm run mode` to toggle between *'Github'* and *'Server'* mode.
+
 **Install**
 
 1. Clone the repo: `git clone https://github.com/cdmedia/cms.js.git` or download the [latest release](https://github.com/cdmedia/cms.js/releases/latest)
